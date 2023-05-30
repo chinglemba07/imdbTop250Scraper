@@ -1,26 +1,69 @@
-# imdbTop250Scraper
-This repository contains a Python script for scraping IMDb's top 250 movies. Extract details like title, rating, release year, director, and cast. Analyze rankings, build recommendation systems, or perform data analysis. Customize and contribute to enhance functionality.
+## IMDb Top Movies Scraper
+This Python script is designed to scrape the top-rated movies from IMDb and store the data in a JSON file.
+
+## Prerequisites
+Make sure you have the following dependencies installed:
+
+* requests: Used for making HTTP requests to retrieve the IMDb webpage.
+* json: Used for working with JSON data.
+* pandas: Used for data manipulation and analysis (not explicitly used in this script).
+* bs4 (Beautiful Soup): Used for parsing HTML and extracting data from it.
+
+You can install these dependencies using pip:
+
+		pip install -r requirements.txt
+
+The requirements.txt file contains a list of dependencies and their versions.
 
 ## Usage
+Import the necessary modules:
 
-1. Clone the repository to your local machine or download the script directly.
-2. Install the required dependencies using the following command:
-3. Run the python script  to initiate the scraping process.
-4. The script will scrape the IMDb website and retrieve the latest information about the top 250 movies.
-5. The scraped data will be saved in a CSV file named `IMDB.csv` in the same directory.
+	import requests
+	import json
+	import pandas as pd
+	from bs4 import BeautifulSoup
+Set the URL of the IMDb top movies page:
 
-## Customization
+	url = "https://www.imdb.com/chart/top/"
+Send an HTTP GET request to the URL and retrieve the webpage content:
 
-The script is designed to scrape the IMDb top 250 movies by default. However, you can modify it to scrape other movie lists or additional information from IMDb.
+	response = requests.get(url)
+	response = response.content
+Create a BeautifulSoup object to parse the HTML content:
+	
+	soup = BeautifulSoup(response, 'html.parser')
+Find all the movie elements in the HTML using the appropriate CSS selectors:
 
-To customize the script:
-- Adjust the URL in the script to target a different IMDb movie list.
-- Modify the code to extract additional data fields or information from the IMDb pages.
+	ol = soup.find_all('td', class_='titleColumn')
+	rt = soup.find_all('strong')
+Iterate over the movie elements and extract the desired information:
 
-## Contributing
+	movie_list = []
 
-Contributions to enhance the functionality, improve the scraping process, or add new features are welcome! If you have any suggestions, feel free to open an issue or submit a pull request.
 
-## Legal Disclaimer
+	for i in range(len(ol)):
+    rank = i + 1
+    tr = ol[i].find('a')
+    title = tr.text
+    yr = ol[i].find('span', class_='secondaryInfo')
+    year = int(yr.text[1:5])
+    actors = tr.attrs["title"]
+    split_actors = actors.split("(dir.),")
+    director = split_actors[0].strip()
+    cast = split_actors[1].strip()
+    rating = float(rt[i].text)
+    
+    movie_list.append({
+        "rank": rank,
+        "title": title,
+        "year": year,
+        "director": director,
+        "cast": cast,
+        "rating": rating
+    })
+Write the extracted movie data to a JSON file named data.json:
 
-Please note that scraping IMDb or any other website may have legal implications. Ensure compliance with IMDb's terms of service and usage policies while utilizing the scraped data. The responsibility lies with the user of this script.
+	with open('data.json', 'w') as file:
+    json.dump(movie_list, file)
+Note: The script uses the json.dump() function to write the data in a structured format. 
+You can modify the script to perform additional data processing or analysis based on your requirements.
